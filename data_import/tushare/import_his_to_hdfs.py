@@ -5,16 +5,22 @@ from hdfs import InsecureClient
 import time as time
 import matplotlib.pyplot as plt
 
-client = InsecureClient("http://10.108.1.56:50070",user='hive')
+#client = InsecureClient("http://10.108.1.56:50070",user='hive')
+client = hdfs.Client("http://hadoop:50070")
 
-df = ts.get_hist_data('002905')
+# df = ts.get_hist_data('002905')
 
 # print(client.list("/"))
+with open("/temp/out.txt") as reader, client.write("/out.txt") as writer:
+   for line in reader:
+     if line.startswith("-"):
+       writer.write(line)
 
-with client.read("/kylin/", encoding="utf-8", delimiter="\n") as reader:
- for line in reader:
-  time.sleep(1)
-  print(line)
+
+# with client.read("/kylin/", encoding="utf-8", delimiter="\n") as reader:
+#  for line in reader:
+#   time.sleep(1)
+#   print(line)
 
 #hdfs_utils.dataframe_write_to_hdfs(client,"/002905.csv",df)
 

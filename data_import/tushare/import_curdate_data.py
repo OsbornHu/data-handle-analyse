@@ -1,5 +1,8 @@
 import tushare as ts
 
+#http://tushare.org/trading.html#id2
+
+
 df = ts.get_realtime_quotes('002905')            #当日的历史分笔数据
 print(df.head(10) )                                #距离执行时间最近的10笔
 
