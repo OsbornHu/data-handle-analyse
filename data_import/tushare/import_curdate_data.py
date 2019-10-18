@@ -1,0 +1,13 @@
+import tushare as ts
+
+df = ts.get_realtime_quotes('002905')            #当日的历史分笔数据
+print(df.head(10) )                                #距离执行时间最近的10笔
+
+df = ts.get_realtime_quotes('000725')            #当日的历史分笔数据
+print(df.head(10) )                                #距离执行时间最近的10笔
+
+
+
+df = ts.get_realtime_quotes('002889')            #当日的历史分笔数据
+print(df.head(10) )                                #距离执行时间最近的10笔
+
