@@ -5,14 +5,14 @@ import os
 
 
 ####常量设置####
-fileName = 'E:/Python/tushare/data/everyday/'
+fileName = '/temp/tushare/data/everyday/'
 
 ####链接地址的token,'a82de...............................'这部分是密钥####
-pro = ts.pro_api('a82de...............................')
+pro = ts.pro_api('e401f34dbff435ca4b2107f213ef40816a3f8413e71ebc5378456930')
 
 ####读取全部的股票代码，'/5%.xlsx'表示需要下载的股票数据列表####
 def download(time,start_time,market):
-    readbook = xlrd.open_workbook(fileName+ time + '/5%.xlsx')
+    readbook = xlrd.open_workbook(fileName + '/list.xlsx')
     rtable = readbook.sheet_by_name(market)
     data = []
     row = rtable.nrows
@@ -33,11 +33,11 @@ def download(time,start_time,market):
         num_code = data[i][0]+".SZ"
         name = data[i][1]
         if True:
-            df = pro.daily_basic(ts_code=num_code,start_date='20190120')
+            df = pro.daily_basic(ts_code=num_code,start_date=start_time)
             df.to_excel(fileName + time + '/' + market + '/' + num_code + '_' + name + '_daily_basic.xlsx')
-            df = pro.daily(ts_code=num_code,start_date='20190120')
+            df = pro.daily(ts_code=num_code,start_date=start_time)
             df.to_excel(fileName + time + '/' + market + '/' + num_code + '_' + name + '_daily.xlsx')
             print('doenload Number',i,num_code,name)
 
 if __name__ == "__main__":
-    download("2019012","20190120","zhong")
+    download("201909","20190301","a")

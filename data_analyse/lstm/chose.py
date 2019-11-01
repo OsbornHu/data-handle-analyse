@@ -5,10 +5,10 @@ import xlwt
 import os
 import time
 
-fileName = 'E:/Python/tushare/data/everyday/'
+fileName = '/temp/tushare/data/everyday/'
 
 def chose(time,market):
-    readbook = xlrd.open_workbook(fileName + time + '/5%.xlsx')
+    readbook = xlrd.open_workbook(fileName  + '/list.xlsx')
     rtable = readbook.sheet_by_name(market)
     writebook = xlwt.Workbook(encoding = 'ascii')
     wtable = writebook.add_sheet('Sheet1')
@@ -36,7 +36,7 @@ def chose(time,market):
         num_code = data[n][0] + ".SZ"
         name = data[n][1]
         if True:
-            readbook_d = xlrd.open_workbook(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xlsx')
+            readbook_d = xlrd.open_workbook(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xls')
             rtable_d = readbook_d.sheet_by_name('Sheet1')
             row_d = rtable_d.nrows
             col_d = rtable_d.ncols
@@ -65,7 +65,7 @@ def chose(time,market):
             if temp[i][j] == '':
                 temp[i][j] = '0.00'
             wtable.write(i,j,temp[i][j])
-    writebook.save(fileName + time + '/' + market + '/' + '1up_data.xlsx')
+    writebook.save(fileName + time + '/' + market + '/' + '1up_data.xls')
     print('1up Successy!')
 
 ####选取两天涨停的数据####
@@ -81,7 +81,7 @@ def chose(time,market):
         num_code = data[n][0] + ".SZ"
         name = data[n][1]
         if True:
-            readbook_d = xlrd.open_workbook(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xlsx')
+            readbook_d = xlrd.open_workbook(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xls')
             rtable_d = readbook_d.sheet_by_name('Sheet1')
             row_d = rtable_d.nrows
             col_d = rtable_d.ncols
@@ -109,7 +109,7 @@ def chose(time,market):
             if temp[i][j] == '':
                 temp[i][j] = '0.00'
             wtable.write(i,j,temp[i][j])
-    writebook.save(fileName + time + '/' + market + '/' + '2up_data.xlsx')
+    writebook.save(fileName + time + '/' + market + '/' + '2up_data.xls')
     print('2up Successy!')
 
 ####选取2天涨幅大于5%的数据####
@@ -125,7 +125,7 @@ def chose(time,market):
         num_code = data[n][0] + ".SZ"
         name = data[n][1]
         if True:
-            readbook_d = xlrd.open_workbook(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xlsx')
+            readbook_d = xlrd.open_workbook(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xls')
             rtable_d = readbook_d.sheet_by_name('Sheet1')
             row_d = rtable_d.nrows
             col_d = rtable_d.ncols
@@ -153,8 +153,8 @@ def chose(time,market):
             if temp[i][j] == '':
                 temp[i][j] = '0.00'
             wtable.write(i,j,temp[i][j])
-    writebook.save(fileName + time + '/' + market + '/' + '5%2up_data.xlsx')
+    writebook.save(fileName + time + '/' + market + '/' + '5%2up_data.xls')
     print('5%2up Successy!')
 
 if __name__ == "__main__":
-    chose("2019012","zhong")
+    chose("201909","a")

@@ -7,10 +7,10 @@ import os
 import time
 
 
-fileName = 'E:/Python/tushare/data/everyday/'
+fileName = '/temp/tushare/data/everyday/'
 
 def merge(time,market):
-    readbook = xlrd.open_workbook(fileName + time + '/5%.xlsx')
+    readbook = xlrd.open_workbook(fileName  + '/list.xlsx')
     rtable = readbook.sheet_by_name(market)
     data = []
     row = rtable.nrows
@@ -69,9 +69,9 @@ def merge(time,market):
                     if data_d[i][j] == '':
                         data_d[i][j] = 0.00
                     wtable.write(i,j,data_d[i][j])
-            writebook.save(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xlsx')
+            writebook.save(fileName + time + '/' + market + '/' + num_code + '_' + name + '_data_merge.xls')
             print('merge Number',n,num_code,name)
 
-if __name__ == "__mian__":
-    merge("2019012","zhong")
+if __name__ == "__main__":
+    merge("201909","a")
 

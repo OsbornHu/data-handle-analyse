@@ -1,5 +1,7 @@
 '''
 从数据库中读取相关的股票并绘制K线图，此处使用的是pyecharts中自带的K线图
+pip install pyecharts==0.5.5
+pip uninstall pyecharts -y
 '''
 import pymysql
 import config
@@ -76,4 +78,4 @@ def view(code, start_, end_):
 
 
 if __name__ == '__main__':
-    view(code='600360', start_='2017-04-01', end_='2018-04-16')
+    view(code='600438', start_='2019-06-01', end_='2019-10-31')

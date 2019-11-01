@@ -24,17 +24,17 @@ def two_up(time,market):
         train = False
         count = 0
         test_num = 20
-        fileName = "E:/Python/tushare/data/everyday/"
+        fileName = "/temp/tushare/data/everyday/"
         MODEL_NAME = "dichan_LSTM"
         if market == "zhong":
-           MODEL_SAVE_PATH = 'E:/Python/tushare/model/中小板/2up'
+           MODEL_SAVE_PATH = '/temp/tushare/model/zhong/2up'
         if market == "chuang":
-           MODEL_SAVE_PATH = 'E:/Python/tushare/model/创业板/2up'
-        if market == "zhu":
-           MODEL_SAVE_PATH = 'E:/Python/tushare/model/主板/2up'
+           MODEL_SAVE_PATH = '/temp/tushare/model/chuang/2up'
+        if market == "a":
+           MODEL_SAVE_PATH = '/temp/tushare/model/a/2up'
 
 ####从Excel中读出数据####
-        readbook = xlrd.open_workbook(fileName + time + '/' + market + '/' + '2up_data.xlsx')
+        readbook = xlrd.open_workbook(fileName + time + '/' + market + '/' + '2up_data.xls')
         table = readbook.sheet_by_name('Sheet1')
         writebook = xlwt.Workbook(encoding = 'ascii')
         wtable = writebook.add_sheet('Sheet1')
@@ -216,7 +216,7 @@ def two_up(time,market):
                         print(temp)
                         for i in range(len(temp)):
                                 wtable.write(i,1,int(temp[i]))
-                        writebook.save(fileName + time + '/' + market + '/' + '2up_data_label_pred.xlsx')
+                        writebook.save(fileName + time + '/' + market + '/' + '2up_data_label_pred.xls')
                         print('Successy!')
 
                         stock_chose = []
@@ -228,4 +228,4 @@ def two_up(time,market):
         tf.reset_default_graph()
 
 if __name__ == "__main__":
-        two_up("20190125","zhong")
+        two_up("201909","a")
