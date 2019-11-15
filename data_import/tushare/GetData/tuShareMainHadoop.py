@@ -1,13 +1,11 @@
 import copy
 from threading import Thread
 
-import pymysql
 import tushare as ts
-from sqlalchemy import create_engine
-import sqlalchemy
-
+import hdfs as hdfs
 import config
 
+client=hdfs.Client("http://10.108.1.60:50070",timeout=30000)  #连接到HDFS服务
 
 # 获取所有的股票
 def getBasics():
@@ -215,69 +213,24 @@ def saveStockbasic():
     str = deleteStockbasic()
     if str == "OK":
         th = getBasics()
-        mysql_info = config.mysql_info
-        engine = create_engine('mysql+pymysql://%s:%s@%s/%s?charset=%s' % (mysql_info['user'], mysql_info['passwd'],
-                                                                   mysql_info['host'], mysql_info['db'],
-                                                                   mysql_info['charset']))
-        th.to_sql("stockbasics", con=engine, if_exists='append', chunksize=1000    )
+
+        client.write('/home/hadoop/hive/data/tushare.db/stockbasics/data.csv',
+                     th.to_csv(header=False, index=True, sep=","), encoding='utf-8', overwrite=True)
     else:
         print("清空数据失败了，详情:{0}".format(str))
 
 
 # 清空股票基础信息
 def deleteStockbasic():
-    connection = pymysql.connect(**config.mysql_info)
     try:
-        with connection.cursor() as cursor:
-            sql = ' delete from stockbasics '
-            cursor.execute(sql)
-            connection.commit()  # 删除数据必须要提交
-            return 'OK'
+        client.delete('/home/hadoop/hive/data/tushare.db/stockbasics/data.csv')
+        return 'OK'
     except Exception as e:
         return 'NG:%s' % (e)
-    finally:
-        connection.close()
+
 
 
 # ---------- 保存所有股票基础信息 ----------------#
-
-# ----------- 保存数据到表 ---------------#
-def saveData(table, metho):
-    '''
-    通过传入表名、方法名存储数据到数据库
-    :param table: 表的名字
-    :param metho: 方法名字
-    :return:
-    '''
-    str = deleteAllData(table)
-    # str = "OK"
-    if str == "OK":
-        th = metho()
-        mysql_info = config.mysql_info
-        engine = create_engine('mysql+pymysql://%s:%s@%s/%s?charset=%s' % (mysql_info['user'], mysql_info['passwd'],
-                                                                   mysql_info['host'], mysql_info['db'],
-                                                                   mysql_info['charset']))
-        th.to_sql(table, engine, if_exists='append', chunksize=1000)
-    else:
-        print("清空表[{1}]数据失败了，详情:{0}".format(str, table))
-
-
-# 删除指定表格所有信息
-def deleteAllData(tablename):
-    connection = pymysql.connect(**config.mysql_info)
-    try:
-        with connection.cursor() as cursor:
-            sql = ' delete from {0} '.format(tablename)
-            cursor.execute(sql)
-            connection.commit()  # 删除数据必须要提交
-            return 'OK'
-    except Exception as e:
-        return 'NG:%s' % (e)
-    finally:
-        connection.close()
-
-
-# ----------- 保存数据到表 ---------------#
 
 
 
@@ -346,29 +299,10 @@ def saveStockHistorySingle():
             turnover:换手率[注：指数无此项]
            '''
             oneth = ts.get_hist_data(one)
-            columnslist = oneth.columns.values.tolist()
-            columnslist.insert(0, 'code')
-            columnslist.insert(0, 'date')
-            oneth = oneth.reindex(columns=columnslist)
-            oneth['code'] = one
-            oneth['date'] = oneth.index
-            mysql_info = config.mysql_info
-            engine = create_engine('mysql+pymysql://%s:%s@%s/%s?charset=%s' % (mysql_info['user'], mysql_info['passwd'],
-                                                                       mysql_info['host'], mysql_info['db'],
-                                                                       mysql_info['charset']))
-            oneth.to_sql("stock_history", engine, index=False, if_exists='append', chunksize=1000)
-        except:
-            try:
-                print("[{0}]使用get_k_data方法获取数据".format(one))
-                oneth = ts.get_k_data(one)
-                columnslist = oneth.columns.values.tolist()
-                oneth = oneth.reindex(columns=columnslist)
-                mysql_info = config.mysql_info
-                engine = create_engine('mysql+pymysql://%s:%s@%s/%s?charset=%s' % (mysql_info['user'], mysql_info['passwd'],
-                                                                           mysql_info['host'], mysql_info['db'],
-                                                                           mysql_info['charset']))
-                oneth.to_sql("stock_history", engine, index=False, if_exists='append', chunksize=1000)
-            except Exception as e:
+
+            client.write("/home/hadoop/hive/data/tushare.db/stock_history/" + one + ".csv",
+                         oneth.to_csv(header=False, index=False, sep=","), encoding='utf-8', overwrite=True)
+        except Exception as e:
                 print("[{0}]存储失败,[{1}]".format(one, e))
                 fail.append(one)
     print('当前列表已经空了[{0}]'.format(len(stock_list)))
@@ -412,31 +346,9 @@ def saveStockHistoryIncreaseSingle():
         try:
             print("[{0}]使用get_hist_data方法获取数据".format(one))
             oneth = ts.get_hist_data(code=one, start=startdate, end=enddate)
-            columnslist = oneth.columns.values.tolist()
-            # 添加code列
-            columnslist.insert(0, 'code')
-            #
-            columnslist.insert(0, 'date')
-            oneth = oneth.reindex(columns=columnslist)
-            oneth['code'] = one
-            oneth['date'] = oneth.index
-            mysql_info = config.mysql_info
-            engine = create_engine('mysql+pymysql://%s:%s@%s/%s?charset=%s' % (mysql_info['user'], mysql_info['passwd'],
-                                                                       mysql_info['host'], mysql_info['db'],
-                                                                       mysql_info['charset']))
-            oneth.to_sql("stock_history", engine, index=False, if_exists='append', chunksize=1000)
-        except:
-            try:
-                print("[{0}]使用get_k_data方法获取数据".format(one))
-                oneth = ts.get_k_data(code=one, start=startdate, end=enddate)
-                columnslist = oneth.columns.values.tolist()
-                oneth = oneth.reindex(columns=columnslist)
-                mysql_info = config.mysql_info
-                engine = create_engine('mysql+pymysql://%s:%s@%s/%s?charset=%s' % (mysql_info['user'], mysql_info['passwd'],
-                                                                           mysql_info['host'], mysql_info['db'],
-                                                                           mysql_info['charset']))
-                oneth.to_sql("stock_history", engine, index=False, if_exists='append', chunksize=1000)
-            except Exception as e:
+            client.write("/home/hadoop/hive/data/tushare.db/stock_history/" + one + ".csv",
+                         oneth.to_csv(header=False, index=False, sep=","), encoding='utf-8', overwrite=True)
+        except Exception as e:
                 print("[{0}]存储失败,[{1}]".format(one, e))
                 fail_increase.append(one)
 
@@ -445,35 +357,7 @@ def saveStockHistoryIncreaseSingle():
 
 # 根据股票代码获取股票历史中最新的日期
 def getStockStartDate(stockcode):
-    '''
-    根据股票代码获取股票历史中最新的日期
-    需要注意的是，因为接口中返回数据包括start参数那天的值，所以在数据库中查询stardate作为start参数的时候需要加1天
-    :param stockcode: 股票代码
-    :return: 返回两个参数分别可作为start，end参数
-    '''
-    connection = pymysql.connect(**config.mysql_info)
-    try:
-        with connection.cursor() as cursor:
-            sql = ''' 
-                    SELECT
-                        IFNULL(
-		                    DATE_ADD(max(t.date),INTERVAL 1 DAY),
-                            DATE_FORMAT(
-                                DATE_SUB(NOW(), INTERVAL 7 DAY),
-                                '%Y-%m-%d'
-                            )
-                        ) startdate,
-                        DATE_FORMAT(NOW(), '%Y-%m-%d') enddate
-                    FROM
-                        stock_history t
-                    WHERE
-                        t.`code` = '{0}'
-                '''.format(stockcode)
-            cursor.execute(sql)
-            results = cursor.fetchall()
-            return results[0][0], results[0][1]
-    except:
-        return "NG", "NG"
+    return "NG", "NG"
 
 
 # ------------ 增量更新历史数据-------------#
@@ -484,10 +368,10 @@ a = [getIndustryClassified, getConceptClassified, getAreaClassified, getSmeClass
 
 if __name__ == '__main__':
     # 获取股票基本数据
-     saveStockbasic()
+    #  saveStockbasic()
 
     # 首次获取股票两年内历史数据，参数为线程数量
-    # saveStockHistory(8)
+    saveStockHistory(8)
 
     # 获取股票增量历史数据，参数为线程数量
     #saveStockHistoryIncrease(8)

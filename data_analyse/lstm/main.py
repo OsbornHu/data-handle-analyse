@@ -4,9 +4,9 @@ import data_analyse.lstm.merge as merge
 import data_analyse.lstm.chose as chose
 import data_analyse.lstm.LSTM as LSTM
 
-market = ["chuang","a","zhong"]
-time = "201909"
-start_time = "20190901"
+market = ["a"]
+time = "201601"
+start_time = "20160101"
 
 for i in range(len(market)):
    download.download(time,start_time,market[i])

@@ -21,7 +21,7 @@ def two_up(time,market):
         decay_step = 50
         alpha = 1.0
         scale = 1e-4
-        train = False
+        train = True
         count = 0
         test_num = 20
         fileName = "/temp/tushare/data/everyday/"
