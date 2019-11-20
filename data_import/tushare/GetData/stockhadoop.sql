@@ -42,10 +42,9 @@ CREATE TABLE stock_history (
   v_ma5 float COMMENT '5日均量',
   v_ma10 float COMMENT '10日均量',
   v_ma20 float COMMENT '20日均量',
-  turnover float COMMENT '换手率[注：指数无此项]'
-
+stock_date string comment '日期，用于分区字段'
 )  
-partitioned by (stock_date string comment '日期，用于分区字段')  
+  
 ROW FORMAT DELIMITED 
   FIELDS TERMINATED BY ','
   
@@ -55,6 +54,8 @@ ROW FORMAT DELIMITED
 
 select * from stockbasics
 select * from stock_history
+
+select count(code) from stock_history
 
 
 

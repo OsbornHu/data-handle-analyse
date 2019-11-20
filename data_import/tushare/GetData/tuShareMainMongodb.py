@@ -1,11 +1,39 @@
 import copy
+import sys
 from threading import Thread
-
+import pandas as pd
 import tushare as ts
-import hdfs as hdfs
 import config
+import json
+from pymongo import MongoClient
 
-client=hdfs.Client("http://10.108.1.60:50070",timeout=30000)  #连接到HDFS服务
+
+class MongoBase:
+    def __init__(self,collection):
+        self.collection=collection
+        self.OpenDB()
+    def OpenDB(self):
+        user='admin'
+        passwd='123456'
+        host='10.108.1.57'
+        port='27017'
+        auth_db='admin'
+        uri = "mongodb://"+user+":"+passwd+"@"+host+":"+port+"/"+auth_db+"?authMechanism=SCRAM-SHA-1"
+        self.con = MongoClient(uri, connect=False)
+        self.db=self.con['thshare']
+        self.collection=self.db[self.collection]
+    def closeDB(self):
+        self.con.close()
+
+
+# if __name__ =='__main__':
+#     mongo=MongoBase('test')
+#     dicts = {'one': [1, 2, 3], 'two': [2, 3, 4], 'three': [3, 4, 5]}
+#     df = pd.DataFrame(dicts)
+#     mongo.collection.insert(json.loads(df.T.to_json()).values())
+#     mongo.closeDB()
+#     print(json.loads(df.T.to_json()).values())
+
 
 # 获取所有的股票
 def getBasics():
@@ -213,9 +241,14 @@ def saveStockbasic():
     str = deleteStockbasic()
     if str == "OK":
         th = getBasics()
+        mongo = MongoBase('stockbasic')
 
-        client.write('/home/hadoop/hive/data/tushare.db/stockbasics/data.csv',
-                     th.to_csv(header=False, index=True, sep=","), encoding='utf-8', overwrite=True)
+        df = getBasics()
+        df.insert(0, 'code', df.T)
+
+        mongo.collection.insert(json.loads(df.T.to_json()).values())
+        mongo.closeDB()
+
     else:
         print("清空数据失败了，详情:{0}".format(str))
 
@@ -223,7 +256,8 @@ def saveStockbasic():
 # 清空股票基础信息
 def deleteStockbasic():
     try:
-        client.delete('/home/hadoop/hive/data/tushare.db/stockbasics/data.csv')
+        mongo = MongoBase('stockbasic')
+        mongo.collection.remove()
         return 'OK'
     except Exception as e:
         return 'NG:%s' % (e)
@@ -303,8 +337,7 @@ def saveStockHistorySingle():
             oneth.insert(0, 'code', one)
             date = oneth.T
             oneth['stock_date'] = date.columns.values
-            client.write("/home/hadoop/hive/data/tushare.db/stock_history/" + one + ".csv",
-                         oneth.to_csv(header=False, index=False, sep=","), encoding='utf-8', overwrite=True)
+
         except Exception as e:
                 print("[{0}]存储失败,[{1}]".format(one, e))
                 fail.append(one)
@@ -349,8 +382,7 @@ def saveStockHistoryIncreaseSingle():
         try:
             print("[{0}]使用get_hist_data方法获取数据".format(one))
             oneth = ts.get_hist_data(code=one, start=startdate, end=enddate)
-            client.write("/home/hadoop/hive/data/tushare.db/stock_history/" + one + ".csv",
-                         oneth.to_csv(header=False, index=False, sep=","), encoding='utf-8', overwrite=True)
+
         except Exception as e:
                 print("[{0}]存储失败,[{1}]".format(one, e))
                 fail_increase.append(one)
@@ -372,22 +404,30 @@ a = [getIndustryClassified, getConceptClassified, getAreaClassified, getSmeClass
 
 def test1():
     one = '000687'
-    client.delete("/home/hadoop/hive/data/tushare.db/stock_history/" + one + ".csv")
+
     oneth = ts.get_hist_data(one)
     oneth.insert(0, 'code', one)
     date = oneth.T
     oneth['stock_date'] = date.columns.values
     # oneth.insert(15,'stock_date',date.columns.values)
-    client.write("/home/hadoop/hive/data/tushare.db/stock_history/" + one + ".csv",
-                 oneth.to_csv(header=False, index=False, sep=","), encoding='utf-8', overwrite=True)
 
+#成长能力
+def getChenZhang():
+    # df = ts.get_profit_data(2019, 3)
+    df = ts.get_growth_data(2019, 3)
+    mongo = MongoBase('growthData')
+
+    mongo.collection.insert(json.loads(df.T.to_json()).values())
+    mongo.closeDB()
 
 if __name__ == '__main__':
     # 获取股票基本数据
     #  saveStockbasic()
 
+    getChenZhang()
+
     # 首次获取股票两年内历史数据，参数为线程数量
-    saveStockHistory(8)
+    # saveStockHistory(8)
     # test1()
 
     # 获取股票增量历史数据，参数为线程数量
