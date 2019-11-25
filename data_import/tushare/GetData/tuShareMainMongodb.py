@@ -244,8 +244,8 @@ def saveStockbasic():
         mongo = MongoBase('stockbasic')
 
         df = getBasics()
-        df.insert(0, 'code', df.T)
-
+        df.insert(0, 'code', df.index)
+        # df.rename(index=code)
         mongo.collection.insert(json.loads(df.T.to_json()).values())
         mongo.closeDB()
 
@@ -422,9 +422,9 @@ def getChenZhang():
 
 if __name__ == '__main__':
     # 获取股票基本数据
-    #  saveStockbasic()
+     saveStockbasic()
 
-    getChenZhang()
+    # getChenZhang()
 
     # 首次获取股票两年内历史数据，参数为线程数量
     # saveStockHistory(8)

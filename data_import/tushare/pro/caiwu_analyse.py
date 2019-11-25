@@ -5,6 +5,8 @@ import numpy as np
 import hdfs as hdfs
 import copy
 from threading import Thread
+from pymongo import MongoClient
+import json
 
 
 #https://tushare.pro/document/2?doc_id=36
@@ -16,6 +18,23 @@ pd.set_option('display.float_format', lambda x: '%.2f' % x)
 # 存储失败列表
 fail = []
 stock_list = []
+
+class MongoBase:
+    def __init__(self,collection):
+        self.collection=collection
+        self.OpenDB()
+    def OpenDB(self):
+        user='admin'
+        passwd='123456'
+        host='10.108.1.57'
+        port='27017'
+        auth_db='admin'
+        uri = "mongodb://"+user+":"+passwd+"@"+host+":"+port+"/"+auth_db+"?authMechanism=SCRAM-SHA-1"
+        self.con = MongoClient(uri, connect=False)
+        self.db=self.con['thshare']
+        self.collection=self.db[self.collection]
+    def closeDB(self):
+        self.con.close()
 
 def get_profit_data(year1, year2, year3, year4, year5, scode):
     timelist = []
@@ -153,6 +172,34 @@ def cashflow(scode,start_date,end_date):
     client.write("/home/hadoop/hive/data/tushare.db/cashflow/" + scode + ".csv",
                  df.to_csv(header=False, index=False, sep=","), encoding='utf-8', overwrite=True)
 
+
+#财务批露日期
+def disclosure_date():
+    # df = pro.disclosure_date(end_date='20191231')
+    df = pro.disclosure_date(ts_code='002475.SZ')
+    mongo = MongoBase('disclosureDate')
+
+    mongo.collection.insert(json.loads(df.T.to_json()).values())
+    mongo.closeDB()
+
+#主营业务构成
+def fina_mainbz():
+    df = pro.fina_mainbz(ts_code='002475.SZ', type='P')
+    print(df.head(10))
+
+#财务指标数据
+def fina_indicator():
+    df = pro.fina_indicator(ts_code='002475.SZ')
+
+#港资流向
+def moneyflow_hsgt():
+    df = pro.moneyflow_hsgt(start_date='20191118', end_date='20191125')
+    print(df.head(10))
+#沪深十大成交
+def hsgt_top10():
+    df = pro.hsgt_top10(trade_date='20191125', market_type='1')
+    print(df.head(10))
+
 if __name__ == "__main__":
     #get_profit_data()
     # SSE 上交所  SZSE 深交所
@@ -162,4 +209,9 @@ if __name__ == "__main__":
     # income('SSE',1,'20180101','20191111')
     # income('SZSE', 1, '20180101', '20191111')
     # balancesheet('002475.SZ', '20190101', '20191030')
-    cashflow('002475.SZ', '20190101', '20191030')
+    # cashflow('002475.SZ', '20190101', '20191030')
+    # fina_mainbz()
+
+    # disclosure_date()
+    # moneyflow_hsgt()
+    hsgt_top10()
