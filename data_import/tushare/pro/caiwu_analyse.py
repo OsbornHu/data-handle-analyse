@@ -193,7 +193,7 @@ def fina_indicator():
 
 #港资流向
 def moneyflow_hsgt():
-    df = pro.moneyflow_hsgt(start_date='20191118', end_date='20191125')
+    df = pro.moneyflow_hsgt(start_date='20191118', end_date='20191126')
     print(df.head(10))
 #沪深十大成交
 def hsgt_top10():
@@ -213,5 +213,5 @@ if __name__ == "__main__":
     # fina_mainbz()
 
     # disclosure_date()
-    # moneyflow_hsgt()
-    hsgt_top10()
+    moneyflow_hsgt()
+    # hsgt_top10()
